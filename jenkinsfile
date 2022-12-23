@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    triggers {
+        pollSCM('* * * * *')
+    }
+    stages {
+        stage('vcs') {
+            agent { label 'build' }
+            steps {
+                git branch: 'amin', url: 'https://github.com/WorkshopsByKhaja/saleor-dashboard.git'
+            }
+        }
+        stage('docker image build') {
+            agent { label 'build' }
+            steps {
+                sh 'docker image build -t venu1212/saleor-dashboar:QT .'
+            }
+        }
+        stage('push image to registry') {
+            agent { label 'build' }
+            steps {
+                sh 'docker image push venu1212/saleor-dashboar:QT'
+            }
+        }
+        stage('create terraform infrastructre') {
+            agent { label 'terraform' }
+            steps {
+                git url: 'git clone https://github.com/hashicorp/learn-terraform-provision-eks-cluster'
+                sh 'terraform init && terraform apply -auto-approve'
+            }
+        }
+    }
+}
