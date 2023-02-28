@@ -1,0 +1,11 @@
+FROM tomcat:8-jdk8
+EXPOSE 8080
+ADD https://referenceapplicationskhaja.s3.us-west-2.amazonaws.com/gameoflife.war /usr/local/tomcat/webapps/gameoflife.war
+CMD ["catalina.sh", "run"]
+ADD docker image tag rhel-httpd:latest registry-host:5000/myadmin/rhel-httpd:latest
+docker image push registry-host:5000/myadmin/rhel-httpd:latest
+docker image build -t venu1212/gameoflife:DON .
+docker image push registry-host:8080 venu1212/gameoflife:DON
+docker container run --name openmrs -d -p 8080:8080 venu1212/open-mrs:UV
+
+docker image push venu1212/nopcommerce:1.1

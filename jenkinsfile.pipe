@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    triggers {
+        pollSCM('* * * * *')
+    }
+    stages {
+        stage('vcs') {
+            steps {
+                git branch: 'main', url: 'https://github.com/WorkshopsByKhaja/saleor-dashboard.git'
+            }
+        }
+        stage('docker image build') {
+            steps {
+                sh 'docker image build -t venu1212/saleor.dash:dev .'
+            }
+        }
+        stage('push image to registry') {
+            steps {
+                sh 'docker image push venu1212/saleor.dash:dev'
+            }
+        }
+        stage('create terraform infrastructre') {
+            agent { label 'jenkins' }
+            steps {
+             sh 'git clone https://github.com/hashicorp/learn-terraform-provision-eks-cluster'
+              dir{'learn-terraform-provision-eks-cluster'}
+              sh 'terraform init && terraform apply -auto-approve'
+              sh'aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)'
+            }
+        }
+
+    }
+}

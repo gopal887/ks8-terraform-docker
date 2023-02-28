@@ -5,13 +5,11 @@ pipeline {
     }
     stages {
         stage('vcs') {
-            agent { label 'build' }
             steps {
-                git branch: 'amin', url: 'https://github.com/WorkshopsByKhaja/saleor-dashboard.git'
+                git branch: 'main', url: 'https://github.com/gopal887/kubernet.git'
             }
         }
         stage('docker image build') {
-            agent { label 'build' }
             steps {
                 sh 'docker image build -t venu1212/saleor-dashboar:QT .'
             }
@@ -23,7 +21,6 @@ pipeline {
             }
         }
         stage('create terraform infrastructre') {
-            agent { label 'terraform' }
             steps {
                 git url: 'git clone https://github.com/hashicorp/learn-terraform-provision-eks-cluster'
                 sh 'terraform init && terraform apply -auto-approve'

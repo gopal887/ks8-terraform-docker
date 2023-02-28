@@ -1,0 +1,33 @@
+pipeline {
+    agent {label 'k8s'}
+    stages{
+        stage('cvs') {
+            steps {
+                sh 'curl -fsSL https://get.docker.com -o get-docker.sh'
+                sh 'sh get-docker.sh'
+                sh 'sudo chmod 666 /var/run/docker.sock'
+                sh 'sudo usermod -a -G docker ubuntu'
+                sh 'sudo systemctl restart docker'
+                sh 'docker info'
+            }
+        }
+        stage ('terraform install'){
+            steps{
+                sh 'sudo apt install awscli -y'
+                sh 'sudo snap install terraform --classic'
+                sh 'wget https://storage.googleapis.com/golang/getgo/installer_linux'
+                sh 'chmod +x ./installer_linux && ./installer_linux && source ~/.bash_profile'
+                sh 'sudo systemctl restart containerd'
+            }
+        }
+        stage ('terraform build'){
+            steps{
+                sh 'git clone https://github.com/hashicorp/learn-terraform-provision-eks-cluster'
+                destination path 'learn-terraform-provision-eks-cluster'
+                sh 'terraform init && terraform apply -auto-approve'
+                sh 'aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)'
+
+            }
+        }
+    }  
+}
